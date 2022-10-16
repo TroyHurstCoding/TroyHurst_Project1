@@ -1,13 +1,12 @@
 package com.revature;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
+import java.util.List;
+
+import com.revature.repo.UserRepo;
 
 public class Employee extends User {
 	
-	private Deque<Ticket> tickets = new ArrayDeque<Ticket>();  
-	private Deque<Ticket> pastTickets = new ArrayDeque<Ticket>();
-	
+	private UserRepo repo = new UserRepo();
 	
 
 	public Employee() {
@@ -15,8 +14,8 @@ public class Employee extends User {
 		
 	}
 
-	public Employee(int id, String name, String username, String password) {
-		super(id, name, username, password);
+	public Employee(int id, String username, String password) {
+		super(id, username, password);
 		
 	}
 
@@ -31,27 +30,16 @@ public class Employee extends User {
 		
 	}
 	
-	public void oldTicket (Ticket finished) {
-		pastTickets.add(finished);
+	public List<Ticket>  getTickets(boolean pending) {
+		return repo.getAllEmpTickets(this, pending);
 	}
 	
-	public void getCurrentTickets() {
-		for(Ticket tix : tickets) {
-			System.out.println(toString(tix));
-		}
-	}
-	
-	public void getPastTickets() {
-		for(Ticket tix : pastTickets) {
-			System.out.println(toString(tix));
-		}
-	}
 	
 	public String toString(Ticket tick) {
 		return "[" + 
 	            tick.getAmount() + 
 	            " : " + 
-	            tick.getState() + 
+	            tick.getStatus() + 
 	            " : "  +
 	            tick.getDescription() +
  	            "]";

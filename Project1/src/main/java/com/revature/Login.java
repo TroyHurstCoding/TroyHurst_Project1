@@ -1,18 +1,11 @@
 package com.revature;
-import java.util.HashMap;
+
+import com.revature.repo.UserRepo;
 
 public class Login {
 	
-	
-//	private boolean existingUser = false;
-//	private String name;
-//	private String username;
-//	private String password;
-	private User tempUser;
-	private int userCnt = 0;
-	//private Deque<User> users = new ArrayDeque<User>();  
-	private HashMap<Integer, User> users = new HashMap<Integer, User>();
-	private HashMap<String, Integer> usernameId = new HashMap<String, Integer>();
+	private User tempUser = new User();
+	private UserRepo repo = new UserRepo();
 	
 	public Login() {}
 	
@@ -22,45 +15,28 @@ public class Login {
 //		this.tempUser = new User(0, name, username, password, manager, existingUser);
 //	}
 
-	public void newUser () {
-		if (tempUser.getManager()) {
-			//User newUser = new Manager(++employeeCnt, name, username, password);
-			User newUser = this.tempUser;
-			Manager newMan = new Manager(++userCnt, newUser.getName(), newUser.getUsername(), newUser.getPassword() );
-			users.put(userCnt, newMan);
-			usernameId.put(newMan.getUsername(), userCnt);
-		} else {
-			//User newUser = new Employee(++employeeCnt, name, username, password);
-			User newUser = this.tempUser;
-			Employee newEmp = new Employee(++userCnt, newUser.getName(), newUser.getUsername(), newUser.getPassword() );
-			users.put(userCnt, newEmp);
-			usernameId.put(newEmp.getUsername(), userCnt);
-			//System.out.println("added username: " + username + " password " + password);
-		}
-		
-		//Send new user to database
-	}
 	
+	//If user is new, check username for availability, create account, return user object. 
+	//If existing, check username password combo and return user object
 	public User loginAttempt(User newUser) {
-
+		
+		this.setUser(newUser);
 		
 		if (!this.tempUser.isExistingUser()) {
 	        
-	        if (this.usernameTaken(this.getUsername())) {
-	        	System.out.println("Username unavailable ");
+	        if (this.usernameTaken(this.getUsername())) { //Check if username is in database already
+	        	//return null if username taken
+	        	System.out.println("Username taken");
 	        	return null;
-		        //u = in.nextLine();
 	        } else {
-			
-	        	System.out.println("Username available.");
+	        	//Otherwise add username and password to DB
+	        	System.out.println("Username available");
 	        	this.newUser();
 	        	return this.getUser();
 	        }
 	        
 		} else {
-			
-			this.tempUser = newUser;
-			
+				
 	        if(!this.checkCredentials()) {
 	        	System.out.println("Invalid username or password");
 	        	return null;
@@ -74,31 +50,38 @@ public class Login {
 	
 	public boolean checkCredentials() {
 		
-		int key = usernameId.get(this.getUsername());
+		User temp = repo.findUser(this.getUsername());
 		
-		if(users.get(key).getPassword().hashCode() == this.getPassword() ) {
+		if(temp.getPassword().hashCode() == this.getPassword() ) {
 			return true;
 		}
 		
 		return false;
 	}
 	
-	//Returns user ID given a username
-	public User getUser() {
-		return users.get(usernameId.get(this.getUsername()));
+	public void newUser () {
+		if (tempUser.getManager()) {
+			User newUser = this.tempUser;
+			Manager newMan = new Manager(0, newUser.getUsername(), newUser.getPassword() );
+			repo.addUser(newMan);
+		} else {
+			User newUser = this.tempUser;
+			Employee newEmp = new Employee(0, newUser.getUsername(), newUser.getPassword() );
+			repo.addUser(newEmp);
+		}
+		
+		//Send new user to database
 	}
 	
-	
-	//Prints all users 
-	public void getUsers() {
-		System.out.println("Printing users");
-		for( User thisUser : users.values()) {
-			System.out.println(thisUser.getUsername());
-		}
+	//Returns user given a username
+	public User getUser() {
+		return repo.findUser(this.getUsername());
 	}
 	
 	public boolean usernameTaken (String username) {
-		if(usernameId.get(username) == null) {
+		User temp = repo.findUser(username);
+		
+		if(temp == null) {
 			return false;
 		}
 		return true;
