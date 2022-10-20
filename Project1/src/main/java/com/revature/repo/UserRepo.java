@@ -20,11 +20,13 @@ public class UserRepo {
 		final String SQL = "INSERT INTO users values(default, ?, ?, ?)";
 
 		try (Connection conn = ConnectionFactory.getConnection()) {
+			
 			stmt = conn.prepareStatement(SQL);
-			//stmt.setInt(1, user.getId());
+			
 			stmt.setString(1, user.getUsername());
 			stmt.setString(2, user.getPassword());
 			stmt.setBoolean(3, user.getManager());
+			
 			stmt.execute();
 
 		} catch (SQLException e) {
@@ -53,6 +55,7 @@ public class UserRepo {
 			stmt = conn.prepareStatement(SQL);
 			stmt.setString(1, username);
 			set = stmt.executeQuery();
+			
 			if (set.next()) {
 				newUser = new User(set.getInt(1), set.getString(2), set.getString(3), set.getBoolean(4));
 			} else {
@@ -64,11 +67,8 @@ public class UserRepo {
 		catch (SQLException e) {
 			e.printStackTrace();
 			return null;
-		}
-
-		// Cleanup
-		finally {
-
+			
+		} finally {
 			try {
 				set.close();
 				stmt.close();
@@ -81,25 +81,30 @@ public class UserRepo {
 	}
 	
 	
-	public boolean changePermissions(String status, User user) {
+	public boolean changePermissions(boolean isManager, User user) {
 		
-		Connection conn = null;
 		PreparedStatement stmt = null;
-		final String SQL = "UPDATE users SET is_manager = ? WHERE user_id = ?";
+		final String SQL;
 		
-		try {
-			conn = ConnectionFactory.getConnection();
+		if (isManager) {
+			SQL = "UPDATE users SET is_manager = true WHERE user_id = ?";
+		} else {
+			SQL = "UPDATE users SET is_manager = false WHERE user_id = ?";
+		}
+		
+		try (Connection conn = ConnectionFactory.getConnection()) {
+			
 			stmt = conn.prepareStatement(SQL);
-			stmt.setString(1, status);
-			stmt.setInt(2, user.getId());
-			stmt.execute(SQL);
+			
+			stmt.setInt(1, user.getId());
+			
+			stmt.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		} finally {
 			try {
-				conn.close();
 				stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -110,49 +115,10 @@ public class UserRepo {
 	}
 	
 	
-	public List<User> findAll() {
-
-		// Make necessary Objects
-		List<User> users = new ArrayList<>();
-		ResultSet set = null;
-		Statement stmt = null;
-
-		try (Connection conn = ConnectionFactory.getConnection()){
-
-		
-			stmt = conn.createStatement();
-
-			set = stmt.executeQuery("SELECT * FROM users");
-
-			while (set.next()) {
-				users.add(
-						new User(set.getInt(1), set.getString(2), set.getString(3), set.getBoolean(4)));
-			}
-		}
-
-		catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		// Cleanup
-		finally {
-
-			try {
-				set.close();
-				stmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return users;
-	}
-	
-	
-	public void addTicket(Ticket tick) {
+	public boolean addTicket(Ticket tick) {
 
 		PreparedStatement stmt = null;
-		final String SQL = "INSERT INTO tickets values( ?, ?, ?, ?, default)";
+		final String SQL = "INSERT INTO tickets values( ?, ?, ?, ?, default, ?)";
 
 		try (Connection conn = ConnectionFactory.getConnection()) {
 			
@@ -160,11 +126,14 @@ public class UserRepo {
 			stmt.setInt(1, tick.getId());
 			stmt.setString(2, tick.getDescription());
 			stmt.setString(3, tick.getStatus());
-			stmt.setInt(4, tick.getAmount());
-			stmt.execute();
+			stmt.setString(4, String.format("%.2f", Float.valueOf(tick.getAmount()) ) );
+			stmt.setString(5, tick.getTicketType());
+			
+			stmt.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return false;
 		} finally {
 			try {
 				stmt.close();
@@ -172,7 +141,7 @@ public class UserRepo {
 				e.printStackTrace();
 			}
 		}
-
+		return true;
 	}
 
 
@@ -188,9 +157,8 @@ public class UserRepo {
 			stmt.setString(1, status);
 			stmt.setInt(2, id);
 			stmt.setInt(3, uniqueId);
-			if(!stmt.execute()) {
-				return false;
-			}
+			
+			stmt.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -200,6 +168,7 @@ public class UserRepo {
 				stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
+				return false;
 			}
 		}
 
@@ -218,12 +187,12 @@ public class UserRepo {
 
 		
 			stmt = conn.createStatement();
-			//WHERE status = 'pending' ORDER BY date_added 
+			
 			set = stmt.executeQuery("SELECT * FROM tickets WHERE status = 'Pending' ORDER BY unique_id");
 
 			while (set.next()) {
 				tickets.add(
-						new Ticket(set.getInt(1), set.getString(2), set.getString(3), set.getInt(4), set.getInt(5)) );
+						new Ticket(set.getInt(1), set.getString(2), set.getString(3), String.format("%.2f", Float.valueOf(set.getString(4))), set.getInt(5), set.getString(6)) );
 			}
 		}
 
@@ -246,18 +215,27 @@ public class UserRepo {
 	}
 	
 	
-	public List<Ticket> getAllEmpTickets(User user, boolean pending) {
+	public List<Ticket> getAllEmpTickets(User user, boolean pending, String ticketType) {
 
 		// Make necessary Objects
 		List<Ticket> tickets = new ArrayList<>();
 		ResultSet set = null;
 		PreparedStatement stmt = null;
 		final String SQL;
+		boolean tickType = false;
 		
 		if (pending) {
-			SQL = "SELECT * FROM tickets WHERE user_id = ? AND status = 'pending'";
+			
+			SQL = "SELECT * FROM tickets WHERE user_id = ? AND status = 'Pending'";
+			
+		} else if (ticketType != null && ticketType != "") {
+			
+			SQL = "SELECT * FROM tickets WHERE user_id = ? and ticket_type = ?";
+			tickType = true;
+			
 		} else {
-			SQL = "SELECT * FROM tickets WHERE user_id = ? ";
+			
+			SQL = "SELECT * FROM tickets WHERE user_id = ?";
 		}
 
 		try (Connection conn = ConnectionFactory.getConnection()) {
@@ -265,13 +243,14 @@ public class UserRepo {
 		
 			stmt = conn.prepareStatement(SQL);
 			stmt.setInt(1, user.getId());
+			if (tickType) stmt.setString(2, ticketType);
 			
 			set = stmt.executeQuery();
 			
 
 			while (set.next()) {
 				tickets.add(
-						new Ticket(set.getInt(1), set.getString(2), set.getString(3), set.getInt(4), set.getInt(5)));
+						new Ticket(set.getInt(1), set.getString(2), set.getString(3), String.format("%.2f", Float.valueOf(set.getString(4))), set.getInt(5), set.getString(6)));
 			}
 		}
 
@@ -300,6 +279,7 @@ public class UserRepo {
         String SQL = "DELETE FROM users WHERE user_id = ?";
 
         try(Connection conn = ConnectionFactory.getConnection();
+        		
         	PreparedStatement stmt = conn.prepareStatement(SQL);) {
            
         	stmt.setInt(1, id);

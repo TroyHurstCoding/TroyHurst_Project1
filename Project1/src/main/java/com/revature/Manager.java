@@ -18,12 +18,12 @@ public class Manager extends User {
 		super(id, username, password);
 	}
 
-	public void changeTicketStatus(Ticket toChange, String status) {
+	public boolean changeTicketStatus(Ticket toChange) {
 		//check if status is Approved/Denied, of neither keep pending
-		if (status == "Approved" || status == "Denied") {
-			toChange.setStatus(status);
+		if (toChange.changeTicketStatus()) {
+			return true;
 		} else {
-			System.out.println("Invalid Ticket Status");
+			return false;
 		}
 		
 	}

@@ -5,11 +5,12 @@ import com.revature.repo.UserRepo;
 
 public class Ticket {
 	
-	private int amount;
+	private String amount;
 	private int id;
 	private String status;
 	private String description;
 	private int uniqueId;
+	private String ticketType;
 
 	private UserRepo repo = new UserRepo();
 	
@@ -17,29 +18,28 @@ public class Ticket {
 		
 	}
 	
-	public Ticket(int id, String description, String status, int amount, int uniqueId) {
+	public Ticket(int id, String description, String status, String amount, int uniqueId, String ticketType) {
 		super();
 		this.amount = amount;
 		this.id = id;
 		this.status = status;
 		this.description = description;
 		this.uniqueId = uniqueId;
-		
+		this.ticketType = ticketType;	
 	}
 	
 	public boolean changeTicketStatus() {
 		return repo.updateTicket(this.getId(), this.getStatus(), this.getUniqueId());
 	}
 
-	
-	public void addTicket() {
-		repo.addTicket(this);
+	public boolean addTicket() {
+		return repo.addTicket(this);
 	}
 	
-	public int getAmount() {
+	public String getAmount() {
 		return amount;
 	}
-	public void setAmount(int amount) {
+	public void setAmount(String amount) {
 		this.amount = amount;
 	}
 	public String getDescription() {
@@ -68,6 +68,14 @@ public class Ticket {
 
 	public void setUniqueId(int uniqueId) {
 		this.uniqueId = uniqueId;
+	}
+
+	public String getTicketType() {
+		return ticketType;
+	}
+
+	public void setTicketType(String ticketType) {
+		this.ticketType = ticketType;
 	}
 	
 }

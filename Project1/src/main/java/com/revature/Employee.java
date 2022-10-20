@@ -19,21 +19,16 @@ public class Employee extends User {
 		
 	}
 
-	public void addTicket () {
-//		Scanner in = new Scanner(System.in);
-//		System.out.print("Reimbursement amount:");
-//		String a = in.nextLine();
-//		System.out.print("Description:");
-//		String d = in.nextLine();
-//		Ticket newTicket = new Ticket(Integer.parseInt(a), this, "pending", d);
-//		tickets.add(newTicket);
-		
+	public boolean addTicket (Ticket tick) {
+
+		tick.setStatus("Pending");
+		tick.setId(this.getId());
+		return tick.addTicket();
 	}
 	
-	public List<Ticket>  getTickets(boolean pending) {
-		return repo.getAllEmpTickets(this, pending);
+	public List<Ticket>  getTickets(boolean pending, String ticketType) {
+		return repo.getAllEmpTickets(this, pending, ticketType);
 	}
-	
 	
 	public String toString(Ticket tick) {
 		return "[" + 

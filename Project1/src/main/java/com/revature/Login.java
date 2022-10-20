@@ -9,13 +9,7 @@ public class Login {
 	
 	public Login() {}
 	
-//	public Login(boolean existingUser, boolean manager, String name,  String username, String password) {
-//		super();
-//		this.existingUser = existingUser;
-//		this.tempUser = new User(0, name, username, password, manager, existingUser);
-//	}
 
-	
 	//If user is new, check username for availability, create account, return user object. 
 	//If existing, check username password combo and return user object
 	public User loginAttempt(User newUser) {
@@ -26,11 +20,10 @@ public class Login {
 	        
 	        if (this.usernameTaken(this.getUsername())) { //Check if username is in database already
 	        	//return null if username taken
-	        	System.out.println("Username taken");
+	        	
 	        	return null;
 	        } else {
 	        	//Otherwise add username and password to DB
-	        	System.out.println("Username available");
 	        	this.newUser();
 	        	return this.getUser();
 	        }
@@ -38,10 +31,8 @@ public class Login {
 		} else {
 				
 	        if(!this.checkCredentials()) {
-	        	System.out.println("Invalid username or password");
 	        	return null;
 	        } else {
-	        	System.out.println("Access granted");
 	        	return this.getUser();
 	        }
 	    }

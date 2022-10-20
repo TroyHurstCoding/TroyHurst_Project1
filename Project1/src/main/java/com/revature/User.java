@@ -1,5 +1,7 @@
 package com.revature;
 
+import com.revature.repo.UserRepo;
+
 public class User {
 	
 	private String username;
@@ -8,6 +10,8 @@ public class User {
 	private boolean manager;
 	private boolean existingUser;
 	private boolean signedIn;
+	
+	private UserRepo repo = new UserRepo();
 	
 	public User(){    
 		setSignedIn(false);
@@ -40,6 +44,10 @@ public class User {
     	this.setPassword(user.getPassword());
     	this.setManager(user.getManager());
     	this.setExistingUser(true);
+    }
+    
+    public boolean changeUserPermissions () {
+    	return repo.changePermissions(this.getManager(), this);
     }
  
     public int getId() {
@@ -99,6 +107,15 @@ public class User {
 
 	public void setSignedIn(boolean signedIn) {
 		this.signedIn = signedIn;
+	}
+	
+	public void resetUser() {
+		 this.id = 0;
+        this.username = null;
+        this.password = null;
+        this.manager = false;
+        this.existingUser = false;
+        this.signedIn = false;
 	}
 }
 
